@@ -3,6 +3,7 @@
 plat := native
 type := prog
 name := encapper
+organization := organization
 
 include $(CURDIR)/main.mk
 

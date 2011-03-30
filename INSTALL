@@ -1,0 +1,19 @@
+Ensure that your compiler is supported by referring to the
+README.
+
+ $ sh README.sh
+
+or
+
+ $ man -M man gmake-recipes
+
+Then edit GNUmakefile changing the definition of
+organization to your organization.
+
+Then run
+
+ $ make encap
+
+to install.
+
+vim:tw=60:
