@@ -1,0 +1,864 @@
+.TH GMAKE-RECIPES 7 "May 13, 2009"
+.SH NAME
+gmake-recipes \- A macro package for GNU make.
+.SH SYNOPSIS
+include main.mk
+
+# target specification
+
+include finalize.mk
+
+# custom post processing
+.SH DESCRIPTION
+In order to use gmake-recipes effectively, please keep in
+mind a few important conventions.  Firstly, your project
+should be laid out something like this.
+
+.nf
+project-dir/GNUmakefile     The project makefile and location
+                            of all the references to
+                            gmake-recipes
+project-dir/src             The C or C++ and other source files
+project-dir/include         The C or C++ header files
+project-dir/ide/<ide name>  A directory to keep IDE files
+                            isolated from one another
+project-dir/data            Data files
+project-dir/config          Configuration files
+.fi
+
+Avoid creating
+.B project-dir/build
+or placing anything there as the build process stores
+intermediate files there.  It would be confusing to also use
+this directory for files which were checked in to change
+management.  Additionally, the clean target removes this
+directory.
+
+gmake-recipes is a macro package for GNU make.  It aims to
+simplify building and installing C and C++ programs.  Before
+including main.mk, specify your buildable's identity.  Eg.
+
+.nf
+plat := native
+type := prog
+name := foo
+.fi
+
+This builds a native program called foo from the files in
+src/ and include/.  Another eg.
+
+.nf
+plat := gnu-arm-elf
+type := staticlib
+name := libfoo
+.fi
+
+This builds a static library for a GNU ARM target called
+libfoo.a.
+
+To get a list of supported platforms and types your version
+of the recipes supports, add this after you include main.mk
+to your GNUmakefile and run make.
+
+.nf
+$(call show-vars,supported-platforms supported-types)
+.fi
+
+It will output something like this.
+
+.nf
+GNUmakefile:9: supported-platforms="native gnu-arm gnu-arm-thumb"
+GNUmakefile:9: supported-types="dylib prog lua-c-module staticlib"
+.fi
+
+You can also take a look at main.mk.
+
+.SH UNIT TESTING SUPPORT
+This section comes near the top of the man page due to unit
+testing's importance in fostering the writing of correct
+programs.  The intent of gmake-recipe's support for unit
+testing is to make it so easy to do that it is harder not to
+test than it is to test.  When developing code, it is not
+uncommon to have a test bed where you exercise new functions
+and classes.  Instead of writing a separate, disposable
+program to do this, encode your exercise code as unit tests
+and they can continue their usefulness in preventing
+regressions as your program matures.
+
+.SS WRITING UNIT TESTS
+Every source file the recipes find under a project's test
+directory is treated as a complete program that must
+compile, link, and execute successfully before the build
+will succeed.  The recipes automatically link this program
+dynamically against libboost_unit_test_framework.  Because
+we are linking dynamically to the unit test framework, you
+must always declare the macro, BOOST_TEST_DYN_LINK.  For
+more information check the boost.test documentation.
+
+.SS UNIT TESTING WITH BOOST
+Boost offers a unit testing framework called Boost.Test that
+is compelling because it is simple.
+
+.nf
+#include "binary.hpp"
+
+#include <iostream>
+
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
+#include <boost/test/unit_test.hpp>
+
+BOOST_AUTO_TEST_CASE(usage)
+{
+   unsigned a = binary<101010101>::value;
+   BOOST_CHECK(a == 0x155);
+
+   unsigned b = binary<1111111111>::value;
+   BOOST_CHECK(b == 0x3ff);
+
+   // Binary numbers over ten digits require "ull" suffix.
+   unsigned c = binary<11111111111111111111ull>::value;
+   BOOST_CHECK(c == 0xfffff);
+}
+.fi
+
+See the Boost Test documentation for more information.
+
+.SS SETTING TEST ENVIRONMENT VARIABLES AND COMMAND LINE ARGUMENTS
+Gmake-recipes runs each test without arguments or changes to
+the default environment by default.  You can change these by
+setting variables in your makefile.
+
+The format for the variable to modify the environment is
+.B <test_name>-env.
+For example, if your script is called binary-test, then you
+can set the environment for that test like this.
+
+.nf
+binary-test-env := BOOST_TEST_LOG_LEVEL=all
+.fi
+
+(If you're using Boost.Test, this instructs the test
+framework to output status messages as tests pass rather
+than just a simple message that they all passed.)
+
+The format for the variable to modify the command line is
+.B <test_name>-args.
+For example, if your script is called binary-test, then you
+can set the command line parameters for that test like this.
+
+.nf
+binary-test-args := -f hi
+.fi
+
+I believe the Boost.Test framework does nothing with these
+parameters.  Still, you may have tests that don't use the
+Boost.Test framework that you need to supply with command
+line parameters.  Use this mechanism to satisfy that need.
+
+.SS TESTS BUILD NATIVE
+Even if you are building a program or library for a
+non-native target, your tests will be built natively for the
+development platform.
+
+.SH USER CONFIGURABLE VARIABLES
+.SS VARIABLES THAT AFFECT $(call dependency,,,)
+You can manipulate the variables used by
+.B dependency
+to affect the compile and link command lines for your
+project.  Use += to modify unless you are certain you want
+to clear the existing value of the variables.  Directly
+modifying the variables is tricky and once you embark on
+that path, you're basically on your own.  If you find
+yourself wanting to make extensive modifications to them,
+perhaps the better thing is to modify the dependency
+mechanism or the compiler definition files.
+
+.PP
+.PD 0
+.TP
+\fIdependency-include-paths\fP
+All of these paths are added to the include path.
+.TP
+\fIdependency-library-paths\fP
+All of these paths are added to the library path.
+.TP
+\fIdependency-run-paths\fP
+All of these space separated paths are added to the run path
+on traditional unixes.  On Darwin, this is overridden to set
+the install name for dylibs only.  It has no effect for
+programs, etc. on Darwin.
+.TP
+\fIdependency-libraries\fP
+All these libraries are linked to the target.
+.TP
+\fIsystem-include-paths\fP
+Default system include paths.  May already be added by the
+compiler.
+.TP
+\fIsystem-library-paths\fP
+Default system library paths.  May already be added by the
+compiler.
+.PD
+
+There may be other configurables.  See lib/dependency.mk.
+
+.SS VARIABLES THAT AFFECT COMPILE
+
+There are several methods you can use to specificy flags
+that affect the compile line.  The value of plat affects the
+names of these macros so where you see $(plat), any of
+$(supported-platforms) is valid.  Same goes for $(lang) and
+$(supported-languages) and for $(type) and
+$(supported-types).
+
+.PP
+.PD 0
+.TP
+\fIfilename.cpp-macros += MY_MACRO
+Adds -DMY_MACRO to the compile line for filename.cpp.
+.TP
+\fI$(plat)-$(lang)-compiler-$(type)-macros += MY_MACRO
+Adds -DMY_MACRO to the $(lang) compile line for $(type)
+targets on $(plat)
+.TP
+\fI$(plat)-macros += MY_MACRO
+Adds -DMY_MACRO to the compile line for any $(lang) and any
+$(type) on $(plat).
+.TP
+\fImacros += MY_MACRO
+Adds -DMY_MACRO to all compile lines.
+.TP
+\fIfilename.cpp-preflags += -myflag
+Adds -myflag to the compile line for filename.cpp.
+.TP
+\fI$(plat)-$(lang)-compiler-$(type)-preflags += -myflag
+Adds -myflag to the $(lang) compile line for for $(type)
+targets on $(plat).
+.TP
+\fI$(plat)-preflags += -myflag
+Adds -myflag to the compile line for any $(lang) and any
+$(type) on $(plat).
+.TP
+\fI$(preflags) += -myflag
+Adds -myflag to all compile lines.
+.TP
+\fIfilename.cpp-precompile := command
+Runs the compile line for filename.cpp through command.
+Used for ccache, etc.
+.TP
+\fI$(plat)-precompile := command
+Runs the compile line through command.
+.TP
+\fI$(precompile) := command
+Runs the compile line through command.
+.TP
+\fIfilename.cpp-postcompile := command args
+Runs compile command && command args for filename.cpp.
+.TP
+\fI$(plat)-postcompile := command args
+Runs compile command && command args for $(plat).
+.TP
+\fIpostcompile := command args
+Runs compile command && command args.
+.TP
+\fI$(plat)-include-paths += /my/path1 /my/path2
+Adds -I/my/path1 -I/my/path2 to the compile line on $(plat).
+.TP
+\fIinclude-paths +=  /my/path1 /my/path2
+Adds -I/my/path1 -I/my/path2 to the compile line.
+.PD
+
+.SS VARIABLES THAT AFFECT LINK
+
+There are several methods you can use to specificy flags
+that affect the link line.  Like the compile flags, $(plat),
+$(lang), and $(type) affect these.
+
+.PP
+.PD 0
+.TP
+\fI$(plat)-$(type)-linker-preflags += -Wl,-myflag
+Adds -Wl,-myflag to the link line on $(plat) for $(type)
+targets.
+.TP
+\fI$(plat)-linker-preflags += -Wl,-myflag
+Adds -Wl,-myflags to the link line on $(plat)
+.TP
+\fIlinker-preflags += -Wl,-myflag
+Adds -Wl,-myflags to the link line.
+.TP
+\fI$(plat)-$(type)-linker-postflags += -lm
+Adds -lm to the end of the link line on $(plat) for $(type)
+targets.  (It would be better to use $(call
+dependency,libm).)
+.TP
+\fI$(plat)-linker-postflags += -lm
+Adds -lm to the end of the link line on $(plat).
+.TP
+\fIlinker-postflags += -lm
+Adds -lm to the end of the link line.
+.TP
+\fI$(plat)-prelink := purify
+Runs the link line as purify $(link) on $(plat).
+\fIprelink := purify
+Runs the link line as purify $(link).
+.PD
+
+.SS VARIABLES THAT REQUEST SPECIAL COMPILATION
+.PP
+.PD 0
+.TP
+\fIgenerate-preprocessed\fP := t
+Cause the compiler to generate a .i file for every object.
+A .i file is the result of running a source file through the
+preprocessor.  This is useful for seeing how macros affect
+your program among others.
+.I NOTE:
+With Sun Studio, instead of getting a .i file, the
+preprocessed file is written to standard output.  I figure
+this is ok since the output is rendered for humans to read.
+Redirect the build output to a file like this .nf
+make 2>&1 |tee out
+.fi
+to make it easier to grok.
+.TP
+\fIgenerate-assembly\fP := t
+Cause the compiler to generate a .s file for every object.
+A .s file is the result of compiling the C source to
+assembler.  You can examine this assembler output to see
+exactly how your code constructs look to the processor (or
+close anyway).  This is useful for checking the results of
+optimization efforts and verifying the compiler output for
+correctness.  It is also useful for studying your compiler
+or comparing compilers of different platforms.
+.PD
+
+
+.SH $(call)able MACROS
+
+The definitive list of callable library macros is in the lib
+directories of gmake-recipes.  The following may be
+incomplete.
+
+.SS $(call ++,123)
+Returns 124.  Useful if you want to iterate through two
+lists simultaneously.  Eg.
+
+.nf
+list1 := a b c d e
+list2 := A B C D E
+iter := 1
+$(foreach x,$(list1), \
+  $(eval y := $(word $(iter),$(list2))) \
+  $(info $(x)-$(y) := iter) \
+  $(eval $(x)-$(y) := iter) \
+  $(eval iter := $(call ++,$(iter))) \
+ )
+.fi
+
+This prints and evaluates the following.
+
+.nf
+a-A := 1
+b-B := 2
+c-C := 3
+d-D := 4
+e-E := 5
+.fi
+
+Valid inputs to ++ are 1-65535.
+
+.SS $(call --,123)
+Returns 122.  Similar to ++.  Valid inputs to -- are
+1-65536.
+
+.SS $(call announce,verb)
+Call from rule command context.  Adds a @ to the command and
+just echoes verb $@ instead of the command that follows.  If
+show=t, the actual command is shown instead.
+
+.SS $(call announce-mkdir,/path/to/dir)
+Command to make a directory wrapped in pretty printing.
+
+.SS $(call announce-install,from,to)
+Copies from to to wrapped in pretty printing.
+
+.SS $(call announce-clean,file1 file2)
+Deletes file1 and file2 wrapped in pretty printing.
+
+.SS $(call announce-recursive-clean,dir1 dir2)
+Deletes all files in dir1 and dir2 wrapped in pretty
+printing.
+
+.SS $(call announce-exec,command)
+Runs command wrapped in pretty printing.
+
+.SS $(call announce-make,path)
+Runs make -C path wrapped in pretty printing.
+
+.SS $(call assert,$(boolean),message)
+Results in $(error message) if $(boolean) results in an
+empty string after being $(strip)ped.
+
+.SS $(call dependencies,name1 name2 name3 etc.)
+Equivalent to
+
+.nf
+$(call dependency,name1)
+$(call dependency,name2)
+$(call dependency,name3)
+$(call dependency,etc.)
+.fi
+
+This is a shorthand used to batch several proprietary
+dependencies in one call.  There is no practical limit to
+the number of packages named in the argument to
+.B dependencies.
+
+.SS $(call dependency,name,version)
+Links your program or library to the version of the library
+mentioned.  Version defaults to trunk.  Eg.
+
+.nf
+$(call dependency,libmylib)
+.fi
+
+links to the trunk build of libmylib
+
+.nf
+$(call dependency,lua,5.1.3)
+.fi
+
+links to the 5.1.3 build of liblua.
+.B Note that we specify the package as it is named in the top level of the repository.
+
+You can also use this facility to link to system libraries.
+Any name mentioned that does not match one of our top level
+projects is assumed to be a system library.  Eg.
+
+.nf
+$(call dependency,libpthread)
+.fi
+
+You can cause your project to link to an historic version of
+a library by specifying the branch revision.  Eg.
+
+.nf
+$(call dependency,libmylib,snapshot-2008.03.28)
+.fi
+
+You can use a header-only project by specifying "n/a" as the
+third argument.  Eg.
+
+.nf
+$(call dependency,boost,1.34.1,n/a)
+.fi
+
+You can link to libraries whose name differs from the
+project like this.  Eg.
+
+.nf
+$(call dependency,boost,1.34.1,boost_date_time)
+.fi
+
+Or you can link to multiple such libraries like this.  Eg.
+
+.nf
+$(call dependency,boost,1.34.1,boost_date_time boost_wave)
+.fi
+
+.SS $(call eq,$(str1),$(str2))
+Returns true if $(str1) and $(str2) are the same after
+$(strip)ping.
+
+.SS $(call find-files-matching-extension,subdir,extns)
+Search in the subdirectory of the current directory specified by $(subdir)
+for files ending in any extention appearing in $(extns).
+
+.SS $(call has,aaa,111 222 bbb aaa ccc)
+Returns true.  $(call has,zzz,111 222 bbb aaa ccc) returns
+false.
+
+.SS $(call install-files,file1 file2,destination)
+Installs a list of files to the absolute path $(destination).
+
+.SS $(call install-lua-modules,mod1.lua mod2.lua,namespace)
+Installs a list of lua modules to $(lua-module-install-location)/$(namespace).
+
+.SS $(call install-man-pages,page.1 anotherpage.1,1)
+Installs a list of man pages to $(man-install-location)/man1.  You can install
+to other sections by varying the section numbers in the man page file suffixes
+and in the second argument to
+.B install-man-pages.
+
+.SS $(call install-scripts,script1 script2)
+Installs the list of files into the platform specific program directory
+and ensures it has execute permissions.
+
+.SS $(call neq,$(str1),$(str2))
+Returns true if $(str1) and $(str2) are different after
+$(strip)ping.
+
+.SS $(call not,boolean)
+Returns t iff boolean is all whitespace or the empty string.
+
+.SS $(call path-to,mylib,myver)
+Called similar to $(dependency).  Gives the absolute path to
+the installed location of mylib-myver.
+
+.SS $(call replace-path-component,3,/a/b/c/d/e,hello)
+Returns /a/b/hello/d/e.
+
+.SS $(call reverse,1 2 3 4 5)
+Returns a reversed list.
+
+.SS $(call show-vars,var1 var2)
+Prints var1="$(var1)" var2="$(var2)" to standard output.
+
+
+.SH COMPILER DEFINITION FILES AND generate-commands.mk
+
+The compiler definition files in gmake-recipes/ver/compilers
+configure parameters used by generate-commands.mk and the
+values set by the
+.B dependency
+and
+.B dependencies
+commands to generate the compile and link commands for each
+supported platform.  You can exert nearly complete control
+over the command line by manual manipulation of the
+variables defined by this process.  For the complete list of
+variables, look to generate-commands.mk.  Where you see $(1)
+read it as c++ and where you see $(2) read it as prog.  For
+a complete list of supported languages put
+
+$(call show-vars,supported-languages)
+
+in your GNUmakefile or see source-tree.mk.  For a complete
+list of supported target types put
+
+$(call show-vars,supported-types)
+
+in your GNUmakefile or see main.mk.  Every compiler must
+specify every combination of language/type for each of the
+variables templated in generate-commands.mk.  That's a lot
+of variables.  For a few of the interesting highlights, see
+the section on
+
+.B USER CONFIGURABLE VARIABLES.
+You'll get the idea in short order and will be able to
+extrapolate to any of the other values.  You can modify
+these variables after including main.mk and before including
+finalize.mk.
+
+.SH Invoking your gmake-recipes based build.
+
+.SS Just build.
+
+.nf
+cd proj/trunk
+make
+.fi
+
+.SS Build and install
+.nf
+cd proj/trunk
+make encap
+.fi
+
+Note: since encapper uses sudo and sudo requires your user
+password, at least on Darwin, you will have to watch to see
+when the first encapper command happens and supply your
+password.  Subsequent sudo invocations seem to reuse the
+credentials until some time has elapsed so you probably
+won't need to input your password more than once unless you
+are running a parallel build and multiple sudo's fire
+simultaneously before your credentials get cached.  One way
+to precache your credentials is to do something like this
+
+.nf
+sudo ls
+.fi
+
+and then run your build.  This gets the password typing
+over with before the build begins and you can let the
+build run unattended.  This step is actually required for
+parallel builds.  Standard input in the child processes get
+disconnected when running parallel make.
+
+.SS Clean
+.nf
+cd proj/trunk
+make clean
+.fi
+
+.SS PURIFY AND FRIENDS
+
+Using purify is simple.  Run your build on a machine which
+has purify in its path and run your build like this.
+
+.nf
+make prelink=purify
+.fi
+
+There is also precompile in case you need it.  Eg. an easy
+way to see your compile commands.  (An easier way is to set
+show=t.)
+
+.nf
+make precompile=echo
+.fi
+
+.SH EXAMPLES
+.SS Hello World
+Lay out your project like this.
+
+.nf
+GNUmakefile
+src/main.c
+.fi
+
+Put this in your GNUmakefile.
+
+.nf
+plat := native
+type := prog
+name := hello-world
+include main.mk
+include finalize.mk
+.fi
+
+.SS Hello World
+Lay out your project like this.
+
+.nf
+GNUmakefile
+src/main.cpp
+.fi
+
+Put this in your GNUmakefile.
+
+.nf
+plat := native
+type := prog
+name := hello-world
+include main.mk
+$(call dependencies,libmylib libyourlib libtheirlib)
+include finalize.mk
+.fi
+
+.SS Install man pages only
+Lay out your project like this.
+
+.nf
+GNUmakefile
+man/manpage.1
+man/manpage.3
+.fi
+
+Put this in your GNUmakefile.
+
+.nf
+include main.mk
+# no target specification
+include finalize.mk
+.fi
+
+.SS Install pure Lua modules.
+Lay out your project like this.
+
+.nf
+GNUmakefile
+src/lua/mymodule.lua
+.fi
+
+Put this in your GNUmakefile.
+
+.nf
+include main.mk
+# no target specification
+include finalize.mk
+
+$(call install-lua-modules,$(wildcard src/lua/*.lua),my/personal/namespace)
+.fi
+
+This installs your lua file into
+.B $(lua-module-install-location)/my/personal/namespace.
+You could then
+add
+.B '$(lua-module-install-location)/?.lua'
+to your script's package.path variable
+and call
+.B require('my.personal.namespace.mymodule').
+To find the current
+value of
+.B lua-module-install-location,
+you can put
+.B $(call show-vars,lua-module-install-location)
+anywhere after including
+main.mk in your GNUmakefile.
+
+.SH FILES
+.TP
+<os name>-<compiler name-<compiler version>.mk
+Provides platform specific configurations for a specific
+operating system/native compiler pair.
+
+.TP
+assert.mk
+Assertion.
+
+.TP
+debug.mk
+Macros to help debug gmake-recipes itself.  Can also be of some avail to
+authors of project specific makefiles.
+
+.TP
+dependency.mk
+Adding compile and link dependencies.
+
+.TP
+derive.mk
+Helper for deriving a compiler definition from another.
+
+.TP
+file-manip.mk
+Macros to install files which need no compilation.
+
+.TP
+finalize.mk
+Does post processing on the
+.B target
+specification.  This is the only place where actual targets
+are defined by gmake-recipes.  Include this file after the
+target specification.
+
+.TP
+generate-commands.mk
+Functions for generating the compile and link commands.
+
+.TP
+list.mk
+List manipulation macros.
+
+.TP
+load-compiler.mk
+Wrapper for loading the appropriate compiler.
+
+.TP
+logic.mk
+Boolean operator macros.
+
+.TP
+main.mk
+Platform discovery and basic setup required for all builds.
+Include this file first.
+
+.TP
+path-to.mk
+Find the install location for a dependency.
+
+.TP
+source-tree.mk
+Macros for recursively finding source files.
+
+.TP
+terse.mk
+Pretty printing wrappers.
+
+.TP
+usage.mk
+Macro to provide basic usage information.  This macro is
+usurped by this man page.
+
+.SH ENCAPPER
+Gmake Recipes uses a tool called encapper to manage
+installation and removal of packages.  It is not dissimilar
+from apt-get, pkgadd, emerge, RPM, or the myriad other
+package management systems.  Encapper is very basic and uses
+the filesystem itself as a database of installed files.  The
+source is checked in to our local SVN repository and is
+built into the top level of the SVN tree as
+
+.B my-encapper-binary.
+
+Packages are installed to
+/usr/local/encap/$(organization)/username-packagename-version
+on any invocation of
+.B make
+in any project built using gmake-recipes.  Then the bin,
+lib, include, and other directories are installed directly
+under this directory.  When you invoke
+.B make encap
+symbolic links are installed into
+/usr/local/$(organization)/* which point to files in
+/usr/local/$(organization)/encap/username-packagename-version/*.
+For example, if user whoami runs
+.B make encap
+in libmylib/trunk on Darwin, the libmylib.dylib file will be
+installed to
+/usr/local/$(organization)/encap/whoami-libmylib-trunk/lib/libmylib.dylib
+and a symlink will be made in
+/usr/local/$(organization)lib/libmylib.dylib which points to the
+former.
+
+The purpose of encapper is to generate a common repository
+of files, in our case under
+/usr/local/encap/$(organization), so we can create scripts,
+install configuration files, with stable paths.  Also, if a
+program is running with existing binaries or libraries, you
+can unencap the program safely because the actual binaries
+and libraries still exist.  You can the reencap a new
+version of the program, for example, and it will get run the
+next time the program is launched.
+
+Even though symbolic links of all the libraries are
+installed under /usr/local/lib, run paths and
+install names reference paths under
+/usr/local/encap/proj/lib.
+
+.SH AUTHOR
+Ken Smith <ksmith at gmail dot com>
+
+.SH BUGS
+One limitation of gmake-recipes is that it deals with only
+one target specification per build.  I find that this pushes
+project file organization out to the filesystem where it
+belongs and keeps each project focused and simple.  In the
+current scheme, you would not build both a program and a
+library in the same project.  This separation can be healthy
+but I can also imagine scenarios where this point of view is
+limiting.  It would not be impossible to modify
+gmake-recipes to handle multiple targets in the same
+project.
+
+This schema also currently enforces building for a single
+platform per project.  It is unwieldy to have a separate
+project just to build a different platform version of a
+program so this is something that I may try to change in the
+future.
+
+Another bug happens sometimes when a build is cancelled with
+CTRL-C.  If the CTRL-C happens when writing the dependency
+file and the dependency file is partially written, this can
+cause an error that looks like this
+
+/Users/ksmith/svn/ca/libmylib/snapshot-2008.03.28/build/Darwin-9.2.0-i386-gcc-4.0.1/mysourcefile.d:123:
+*** missing separator.  Stop.
+
+If that happens, manually remove the file and rerun make.
+(You can also delete the whole build directory if you want.)
+I investigated having the compile pattern rule specify that it
+builds the .d and .o.  While this is possible with pattern
+rules
+(http://www.gnu.org/software/make/manual/make.html#Pattern-Intro),
+advice from the wild
+(http://make.paulandlesley.org/autodep.html) insists that,
+"we must be very careful that we don't provide rules to build
+the dependencies automatically: if we do, make will still try
+to rebuild them and re-exec".  After giving a fair try at
+flouting this wisdom and running into the expected trouble,
+I decided that the workaround of having to delete a file, or
+the build directory, once in a great while isn't a terrible
+burden on a developer.
