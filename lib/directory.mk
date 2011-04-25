@@ -18,7 +18,7 @@ make-directory-rules = \
 $(strip \
   $(eval .mdr-dir := $(patsubst %/,%,$(1))) \
   $(eval .mdr-dir := $(strip $(.mdr-dir))) \
-  $(if $(.mdr-dir), \
+  $(if $(and $(.mdr-dir),$(call neq,.,$(.mdr-dir))), \
     $(if $(call not,$($(.mdr-dir))), \
       $(eval $(.mdr-dir):;$$(call announce-mkdir,$(.mdr-dir))) \
       $(eval $(.mdr-dir): $(prep-encap)) \

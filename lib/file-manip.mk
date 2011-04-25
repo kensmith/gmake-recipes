@@ -14,6 +14,11 @@ install-files = \
 $(strip \
   $(eval .files := $(1)) \
   $(eval .target-dir := $(2)) \
+  $(eval .relpath-check := $(patsubst /%,%,$(.target-dir))) \
+  $(if $(call eq,$(.target-dir),$(.relpath-check)), \
+    $(warning install-files target dir is relative path: $(.target-dir)), \
+    $(comment absolute path) \
+   ) \
   $(call make-directory-rules,$(.target-dir)) \
   $(foreach f,$(.files), \
     $(eval .this-target := $(.target-dir)/$(notdir $(f))) \
