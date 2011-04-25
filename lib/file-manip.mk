@@ -28,8 +28,8 @@ $(strip \
         ; chmod $3 $$@ \
        ) \
      ) \
-    $(eval all: $(.this-target)) \
-    $(comment eval $(.this-target): $(prep-encap)) \
+    $(eval encap: $(.this-target)) \
+    $(eval $(.this-target): $(prep-encap)) \
    ) \
  )
 
