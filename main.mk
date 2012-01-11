@@ -171,10 +171,10 @@ intermediate-curdir := $(subst /,$(space),$(intermediate-curdir))
 # 2.6.1.  Second deepest token represents the project name,
 # eg. libcalxs, eg. afltnav.
 intermediate-curdir := $(call reverse,$(intermediate-curdir))
-release-name := $(word 1,$(intermediate-curdir))
-project-name := $(word 2,$(intermediate-curdir))
-top-level-tag := $(word 3,$(intermediate-curdir))
-top-level-name := $(word 4,$(intermediate-curdir))
+release-name := trunk
+project-name := $(word 1,$(intermediate-curdir))
+top-level-tag := $(word 2,$(intermediate-curdir))
+top-level-name := $(word 3,$(intermediate-curdir))
 
 # Currently logged in user's ID.
 whoami := $(strip $(shell whoami))

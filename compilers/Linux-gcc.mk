@@ -19,11 +19,11 @@ lua-module-install-location := $(install-prefix)/share/lua/$(lua-version)
 luadoc-install-location := $(install-prefix)/share/luadoc/$(project-name)
 config-install-location := $(install-prefix)/share/$(project-name)
 
-native-c-compiler := gcc -std=gnu99 -c
-native-c-compiler-just-preprocess := gcc -std=gnu99 -E
-native-c-compiler-just-compile := gcc -std=gnu99 -S
+native-c-compiler := gcc -std=gnu++0x -c
+native-c-compiler-just-preprocess := gcc -std=gnu++0x -E
+native-c-compiler-just-compile := gcc -std=gnu++0x -S
 native-c-compiler-debugging-flag := -g
-native-c-compiler-depend := gcc -std=gnu99 -c -MM
+native-c-compiler-depend := gcc -std=gnu++0x -c -MM
 native-c-compiler-depend-post-process = \
    | sed -e 's|$$(subst .,\.,$$(notdir $$(@)))|$$@|' \
    | tee $$(@:.o=.d) \
@@ -64,16 +64,16 @@ native-c-compiler-staticlib-macros :=
 native-c-compiler-staticlib-postflags :=
 native-c-compiler-staticlib-preflags := $(native-c-compiler-dylib-preflags)
 
-native-c++-compiler := g++ -c
-native-c++-compiler-just-preprocess := g++ -E
-native-c++-compiler-just-compile := g++ -S
-native-c++-compiler-depend := g++ -c -MM
+native-c++-compiler := g++ -c --std=gnu++0x
+native-c++-compiler-just-preprocess := g++ --std=gnu++0x -E
+native-c++-compiler-just-compile := g++ --std=gnu++0x -S
+native-c++-compiler-depend := g++ --std=gnu++0x -c -MM
 native-c++-compiler-depend-post-process = $(native-c-compiler-depend-post-process)
 $(call derive,native-c++,native-c)
 
 native-dylib-library-flag := -l
 native-dylib-library-path-flag := -L
-native-dylib-linker := g++
+native-dylib-linker := g++ --std=gnu++0x
 native-dylib-linker-postflags := 
 native-dylib-linker-preflags := -shared -fPIC
 native-dylib-linker-output-flag := -o
@@ -87,7 +87,7 @@ native-staticlib-suffix := .a
 
 native-prog-library-flag := -l
 native-prog-library-path-flag := -L
-native-prog-linker := g++
+native-prog-linker := g++ --std=gnu++0x
 native-prog-linker-postflags := 
 native-prog-linker-preflags := -fPIC
 native-prog-linker-output-flag := -o
@@ -96,7 +96,7 @@ native-prog-suffix :=
 
 native-lua-c-module-library-flag := -l
 native-lua-c-module-library-path-flag := -L
-native-lua-c-module-linker := g++
+native-lua-c-module-linker := g++ --std=gnu++0x
 native-lua-c-module-linker-postflags := 
 native-lua-c-module-linker-preflags := -fPIC -shared
 native-lua-c-module-linker-output-flag := -o

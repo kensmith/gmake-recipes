@@ -29,7 +29,7 @@ $(if $(call not,$(.DEFAULT_GOAL)), \
   $(eval .DEFAULT_GOAL := development) \
  )
 
-name ?= $(notdir $(abspath $(dir $(CURDIR))))
+name ?= $(notdir $(abspath $(CURDIR)))
 
 # Tack the prefix and suffix on to the target's basename.
 # Eg.

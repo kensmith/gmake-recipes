@@ -21,10 +21,10 @@ gnu-arm-thumb-c-compiler-staticlib-macros :=
 gnu-arm-thumb-c-compiler-staticlib-postflags :=
 gnu-arm-thumb-c-compiler-staticlib-preflags := $(filter-out -fPIC,$(gnu-arm-c-compiler-dylib-preflags))
 
-gnu-arm-thumb-c++-compiler := arm-elf-g++ -c -mthumb
-gnu-arm-thumb-c++-compiler-just-preprocess := arm-elf-g++ -E
-gnu-arm-thumb-c++-compiler-just-compile := arm-elf-g++ -S
-gnu-arm-thumb-c++-compiler-depend := arm-elf-g++ -c -MM
+gnu-arm-thumb-c++-compiler := arm-elf-g++ -std=gnu++0x -c -mthumb
+gnu-arm-thumb-c++-compiler-just-preprocess := arm-elf-g++ -std=gnu++0x -E
+gnu-arm-thumb-c++-compiler-just-compile := arm-elf-g++ -std=gnu++0x -S
+gnu-arm-thumb-c++-compiler-depend := arm-elf-g++ -std=gnu++0x -c -MM
 gnu-arm-thumb-c++-compiler-depend-post-process = $(native-c-compiler-depend-post-process)
 $(call derive,gnu-arm-thumb-c++,gnu-arm-thumb-c)
 gnu-arm-thumb-c++-compiler-dylib-preflags += -fno-exceptions -fno-rtti 
@@ -34,7 +34,7 @@ gnu-arm-thumb-c++-compiler-staticlib-preflags += -fno-exceptions -fno-rtti
 
 gnu-arm-thumb-dylib-library-flag := -l
 gnu-arm-thumb-dylib-library-path-flag := -L
-gnu-arm-thumb-dylib-linker := arm-elf-g++
+gnu-arm-thumb-dylib-linker := arm-elf-g++ -std=gnu++0x
 gnu-arm-thumb-dylib-linker-postflags := 
 gnu-arm-thumb-dylib-linker-preflags := -shared -fPIC
 gnu-arm-thumb-dylib-linker-output-flag := -o
@@ -48,7 +48,7 @@ gnu-arm-thumb-staticlib-suffix := .a
 
 gnu-arm-thumb-prog-library-flag := -l
 gnu-arm-thumb-prog-library-path-flag := -L
-gnu-arm-thumb-prog-linker := arm-elf-g++
+gnu-arm-thumb-prog-linker := arm-elf-g++ -std=gnu++0x
 gnu-arm-thumb-prog-linker-postflags := 
 gnu-arm-thumb-prog-linker-preflags := $(gnu-arm-prog-linker-preflags)
 gnu-arm-thumb-prog-linker-output-flag := -o
@@ -57,7 +57,7 @@ gnu-arm-thumb-prog-suffix :=
 
 gnu-arm-thumb-lua-c-module-library-flag := -l
 gnu-arm-thumb-lua-c-module-library-path-flag := -L
-gnu-arm-thumb-lua-c-module-linker := arm-elf-g++
+gnu-arm-thumb-lua-c-module-linker := arm-elf-g++ -std=gnu++0x
 gnu-arm-thumb-lua-c-module-linker-postflags := 
 gnu-arm-thumb-lua-c-module-linker-preflags := -fPIC -shared
 gnu-arm-thumb-lua-c-module-linker-output-flag := -o

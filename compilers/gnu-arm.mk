@@ -27,10 +27,10 @@ gnu-arm-c-compiler-staticlib-macros :=
 gnu-arm-c-compiler-staticlib-postflags :=
 gnu-arm-c-compiler-staticlib-preflags := $(filter-out -fPIC,$(gnu-arm-c-compiler-dylib-preflags))
 
-gnu-arm-c++-compiler := arm-elf-g++ -fno-exceptions -fno-rtti -c
-gnu-arm-c++-compiler-just-preprocess := arm-elf-g++ -E
-gnu-arm-c++-compiler-just-compile := arm-elf-g++ -S
-gnu-arm-c++-compiler-depend := arm-elf-g++ -c -MM
+gnu-arm-c++-compiler := arm-elf-g++ -std=gnu++0x -fno-exceptions -fno-rtti -c
+gnu-arm-c++-compiler-just-preprocess := arm-elf-g++ -std=gnu++0x -E
+gnu-arm-c++-compiler-just-compile := arm-elf-g++ -std=gnu++0x -S
+gnu-arm-c++-compiler-depend := arm-elf-g++ -std=gnu++0x -c -MM
 gnu-arm-c++-compiler-depend-post-process = $(native-c-compiler-depend-post-process)
 $(call derive,gnu-arm-c++,gnu-arm-c)
 gnu-arm-c++-compiler-dylib-preflags += -fno-exceptions -fno-rtti 
@@ -40,7 +40,7 @@ gnu-arm-c++-compiler-staticlib-preflags += -fno-exceptions -fno-rtti
 
 gnu-arm-dylib-library-flag := -l
 gnu-arm-dylib-library-path-flag := -L
-gnu-arm-dylib-linker := arm-elf-g++
+gnu-arm-dylib-linker := arm-elf-g++ -std=gnu++0x
 gnu-arm-dylib-linker-postflags := 
 gnu-arm-dylib-linker-preflags := -shared -fPIC
 gnu-arm-dylib-linker-output-flag := -o
@@ -54,7 +54,7 @@ gnu-arm-staticlib-suffix := .a
 
 gnu-arm-prog-library-flag := -l
 gnu-arm-prog-library-path-flag := -L
-gnu-arm-prog-linker := arm-elf-g++
+gnu-arm-prog-linker := arm-elf-g++ -std=gnu++0x
 gnu-arm-prog-linker-postflags := 
 gnu-arm-prog-linker-preflags := -nostartfiles
 gnu-arm-prog-linker-preflags += -Wl,-M
@@ -67,7 +67,7 @@ gnu-arm-prog-suffix :=
 
 gnu-arm-lua-c-module-library-flag := -l
 gnu-arm-lua-c-module-library-path-flag := -L
-gnu-arm-lua-c-module-linker := arm-elf-g++
+gnu-arm-lua-c-module-linker := arm-elf-g++ -std=gnu++0x
 gnu-arm-lua-c-module-linker-postflags := 
 gnu-arm-lua-c-module-linker-preflags := -fPIC -shared
 gnu-arm-lua-c-module-linker-output-flag := -o
