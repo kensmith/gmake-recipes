@@ -5,8 +5,8 @@ dependency-library-paths :=
 dependency-library-abspaths :=
 dependency-run-paths :=
 dependency-libraries :=
-system-include-paths := /usr/local/include /usr/include
-system-library-paths := /usr/local/lib /usr/lib /lib
+system-include-paths := /usr/local/include
+system-library-paths := /usr/local/lib
 
 proprietary-projects :=
 proprietary-versions :=
