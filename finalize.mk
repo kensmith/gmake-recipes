@@ -332,7 +332,7 @@ header-dependencies := $(objs:.o=.d) $(test-objs:.o=.d)
 # The clean target removes everything including the build
 # directory itself for clean 'svn status'.
 
-.PHONY: clean
+.PHONY: clean clena
 clean: ; $(call announce-clean,\
   $(objs) \
   $(real-target) \
@@ -342,6 +342,8 @@ clean: ; $(call announce-clean,\
   $(test-objs) \
  ) \
  && $(recursive-delete) $(CURDIR)/build
+
+clena: clean
 
 # Include the header dependency files if they exist.  This
 # implementation of automatic header dependency discovery is
