@@ -19,7 +19,7 @@ lua-module-install-location := $(install-prefix)/share/lua/$(lua-version)
 luadoc-install-location := $(install-prefix)/share/luadoc/$(project-name)
 config-install-location := $(install-prefix)/share/$(project-name)
 
-native-c-compiler := gcc -std=gnu++0x -c
+native-c-compiler := gcc -std=gnu99 -c
 native-c-compiler-just-preprocess := gcc -std=gnu++0x -E
 native-c-compiler-just-compile := gcc -std=gnu++0x -S
 native-c-compiler-debugging-flag := -g

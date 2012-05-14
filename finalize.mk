@@ -212,11 +212,11 @@ ifneq (,$(strip $(tests)))
 # Generate custom compile pattern rules.
 $(foreach .dir,$(unique-test-dirs), \
   $(eval .test-dir-off-curdir := $(subst $(CURDIR)/test,,$(.dir))) \
-  $(eval .this-build-dir := $(abspath $(build-dir)/test/$(.test-dir-off-curdir))) \
+  $(eval .this-build-dir := $(build-dir)/test/$(.test-dir-off-curdir)) \
   $(foreach .lang,$(supported-languages), \
     $(foreach .extn-pattern,$($(.lang)-source-suffix-patterns), \
       $(eval \
-        $(.this-build-dir)/%.o: \
+        $(.this-build-dir)%.o: \
         $(.dir)/$(.extn-pattern) \
         $(compiler-definition-file) \
         $(this-dir)/lib/generate-commands.mk \
@@ -225,7 +225,7 @@ $(foreach .dir,$(unique-test-dirs), \
         $(abspath $(.this-build-dir)) ; \
            $$(call announce,comp,$$<) \
            $$(filter-out -W%,$$(call compile-$(plat)-$(.lang)-prog,$$<,$$@))) \
-      $(call make-directory-rules,$(.this-build-dir)) \
+      $(call make-directory-rules,$(abspath $(.this-build-dir))) \
      ) \
    ) \
  )
