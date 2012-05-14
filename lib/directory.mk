@@ -20,9 +20,12 @@ $(strip \
   $(eval .mdr-dir := $(strip $(.mdr-dir))) \
   $(if $(and $(.mdr-dir),$(call neq,.,$(.mdr-dir))), \
     $(if $(call not,$($(.mdr-dir))), \
+      $(eval $(.mdr-dir)/:;$$(call announce-mkdir,$(.mdr-dir))) \
+      $(eval $(.mdr-dir)/: $(prep-encap)) \
       $(eval $(.mdr-dir):;$$(call announce-mkdir,$(.mdr-dir))) \
       $(eval $(.mdr-dir): $(prep-encap)) \
       $(eval $(.mdr-dir) := created rule) \
+      $(eval $(.mdr-dir)/ := created rule) \
       , \
       $(comment rule exists for $(.mdr-dir)) \
      ) \
