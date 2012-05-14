@@ -83,7 +83,10 @@ uncommon to have a test bed where you exercise new functions
 and classes.  Instead of writing a separate, disposable
 program to do this, encode your exercise code as unit tests
 and they can continue their usefulness in preventing
-regressions as your program matures.
+regressions as your program matures. Linking to your sources
+requires that the source file containing main be called
+main.x where x is a recognized extension. The functions in
+main cannot be unit tested.
 
 .SS WRITING UNIT TESTS
 Every source file the recipes find under a project's test

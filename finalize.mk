@@ -195,6 +195,7 @@ $(foreach .lang,$(supported-languages), \
     $(eval objs := $(patsubst $(.extn-pattern),%.o,$(objs))) \
    ) \
  )
+objs-without-main := $(filter-out %main.o,$(objs))
 
 # The link rule for the main target.
 # Note: eval used so definition of rules consistently uses
@@ -251,7 +252,7 @@ $(foreach .test,$(tests), \
   $(eval test: $(.test-name)) \
   $(eval $(.test-prog): $(.test-obj) $(installed-target); \
     $(call announce,link,$(.test-prog)) \
-    $(call link-native-prog,$$<,$$@) \
+    $(call link-native-prog,$$< $(objs-without-main),$$@) \
     -lboost_unit_test_framework \
     $($(.test-name)-linker-postflags) \
     $(if \
