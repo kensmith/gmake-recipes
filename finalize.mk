@@ -247,7 +247,7 @@ $(foreach .test,$(tests), \
   $(eval test-progs += $(.test-prog)) \
   $(eval .test-name := $(notdir $(.test-prog))) \
   $(eval $(.test-name): $(.test-prog); \
-    $(call announce-exec,$($(.test-name)-env) $(.test-prog) $($(.test-name)-args)) \
+    $(call announce-exec,$($(.test-name)-env) $(.test-prog) --random $($(.test-name)-args)) \
    ) \
   $(eval test: $(.test-name)) \
   $(eval $(.test-prog): $(.test-obj) $(installed-target); \
