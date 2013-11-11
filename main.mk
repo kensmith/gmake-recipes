@@ -59,14 +59,15 @@ $(if $(bash-loc), \
 
 # Make sure we're running with GNU make version 3.81 or
 # later.
-make-version := $(subst .,$(space),$(MAKE_VERSION))
-make-major-version := $(word 1,$(make-version))
-make-minor-version := $(word 2,$(make-version))
-check-major-version := $(shell (($(make-minor-version) < 3)) && echo eek)
-check-minor-version := $(shell (($(make-minor-version) < 81)) && echo eek)
-$(if $(check-major-version)$(check-minor-version), \
-  $(error This make file requires version 3.81 or higher of GNU make) \
- )
+#make-version := $(subst .,$(space),$(MAKE_VERSION))
+#$(error $(MAKE_VERSION))
+#make-major-version := $(word 1,$(make-version))
+#make-minor-version := $(word 2,$(make-version))
+#check-major-version := $(shell (($(make-minor-version) < 3)) && echo eek)
+#check-minor-version := $(shell (($(make-minor-version) < 81)) && echo eek)
+#$(if $(check-major-version)$(check-minor-version), \
+#  $(error This make file requires version 3.81 or higher of GNU make) \
+# )
 
 # Platform attributes.
 osname := $(subst $(space),-,$(shell uname -s))
