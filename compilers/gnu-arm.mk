@@ -6,7 +6,7 @@ gnu-arm-c-compiler-depend := arm-elf-gcc -std=gnu99 -c -MM
 gnu-arm-c-compiler-depend-post-process = $(native-c-compiler-depend-post-process)
 gnu-arm-c-compiler-dylib-macros :=
 gnu-arm-c-compiler-dylib-postflags :=
-gnu-arm-c-compiler-dylib-preflags := -Wall -Werror
+gnu-arm-c-compiler-dylib-preflags := -Wall
 gnu-arm-c-compiler-dylib-preflags += -fPIC
 gnu-arm-c-compiler-dylib-preflags += -Wextra
 gnu-arm-c-compiler-dylib-preflags += -Wno-strict-aliasing
