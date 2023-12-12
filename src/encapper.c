@@ -34,9 +34,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#define DEFAULT_ENCAPDIR "/usr/local/" ORGANIZATION "/encap"
-#define DEFAULT_LOCALDIR "/usr/local/" ORGANIZATION
-#define DEFAULT_TRACKDIR "/usr/local/" ORGANIZATION "/encap/encapper/EncapDirs"
+#define DEFAULT_ENCAPDIR "/usr/local/encap"
+#define DEFAULT_LOCALDIR "/usr/local/"
+#define DEFAULT_TRACKDIR "/usr/local/encap/encapper/EncapDirs"
 #define MAX_PATH_LEN 8192
 
 /* operational flags & such*/
